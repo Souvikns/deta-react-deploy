@@ -1,0 +1,45 @@
+name: Deploy React to Deta
+description: Deploy your react project to Deta.sh
+
+inputs:
+  deta-access-token:
+    description: 'Deta access token'
+    required: true
+  deta-name:
+    description: 'Deta micro name'
+    required: true
+  deta-project:
+    description: 'Deta project name'
+    default: 'default'
+
+runs:
+  using: "composite"
+  steps:
+  - name: Installing Deta CLI
+    shell: bash
+    run: |
+      curl -fsSL https://get.deta.dev/cli.sh | sh
+  - name: Cloning Deta Metadata
+    shell: bash
+    run: |
+      export DETA_ACCESS_TOKEN=${{ inputs.deta-access-token }}
+        ~/.deta/bin/deta clone --name ${{ inputs.deta-name }} --project ${{ inputs.deta-project }} tmp/
+  - name: Copying build folder
+    shell: bash
+    run: |
+      cp -r build tmp/build
+  - name: writing script
+    shell: bash
+    run: |
+      echo "const express = require('express');const path = require('path');const app = express();app.use(express.static(path.resolve(__dirname, 'client', 'build')));app.get('/', (req, res) => res.sendFile(path.resolve(__dirname, 'client',  'build', 'index.html') ) );app.get('/name', (req,res) => {res.send("Hahah")});module.exports = app" > tmp/index.js
+      echo "{"name": "React Deploy","version": "1.0.0","description": "","main": "index.js","dependencies": {"express": "^4.17.1"}}" > tmp/package.json
+  - name: Deploy to Deta
+    shell: bash
+    run: |
+      cd tmp
+      export DETA_ACCESS_TOKEN=${{ inputs.deta-access-token }}
+      ~/.deta/bin/deta deploy
+
+branding:
+  icon: check-spuare
+  color: gray-dark
