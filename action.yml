@@ -41,5 +41,5 @@ runs:
       ~/.deta/bin/deta deploy
 
 branding:
-  icon: check-spuare
+  icon: check-square
   color: gray-dark
